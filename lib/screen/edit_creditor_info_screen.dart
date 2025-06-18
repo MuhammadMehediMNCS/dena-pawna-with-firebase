@@ -3,54 +3,61 @@ import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/state_manager.dart';
-import 'package:intl/intl.dart';
 
-class AddCreditorInfoScreen extends StatefulWidget {
-  const AddCreditorInfoScreen({super.key});
+class EditCreditorInfoScreen extends StatefulWidget {
+  final Map<String, dynamic> creditor;
+
+  const EditCreditorInfoScreen({super.key, required this.creditor});
 
   @override
-  State<AddCreditorInfoScreen> createState() => _AddCreditorInfoScreenState();
+  State<EditCreditorInfoScreen> createState() => _EditCreditorInfoScreenState();
 }
 
-class _AddCreditorInfoScreenState extends State<AddCreditorInfoScreen> {
-  TextEditingController nameController = TextEditingController();
-  TextEditingController fatherController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-  TextEditingController mobileController = TextEditingController();
-  TextEditingController totalController = TextEditingController();
-  TextEditingController dateController = TextEditingController();
+class _EditCreditorInfoScreenState extends State<EditCreditorInfoScreen> {
+  late TextEditingController nameController;
+  late TextEditingController fatherController;
+  late TextEditingController addressController;
+  late TextEditingController mobileController;
+  late TextEditingController totalController;
+  late TextEditingController dateController;
+  final TextEditingController dipositController = TextEditingController();
 
-  final creditorController = Get.put(CreditorController());
+  final controller = Get.find<CreditorController>();
 
   @override
   void initState() {
-    dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-
+    nameController = TextEditingController(text: widget.creditor['name']);
+    fatherController = TextEditingController(text: widget.creditor['father']);
+    addressController = TextEditingController(text: widget.creditor['address']);
+    mobileController = TextEditingController(text: widget.creditor['mobile']);
+    totalController = TextEditingController(text: widget.creditor['total'].toString());
+    dateController = TextEditingController(text: widget.creditor['date']);
     super.initState();
   }
 
-  void saveData() {
+  void updateData() {
+    final int total = int.tryParse(totalController.text) ?? 0;
+    final int dipodit = int.tryParse(dipositController.text) ?? 0;
+    final int updatedTotal = total - dipodit;
+
     Map<String, dynamic> data = {
       'name': nameController.text,
       'father': fatherController.text,
       'address': addressController.text,
       'mobile': mobileController.text,
-      'total': int.parse(totalController.text),
-      'date': dateController.text
+      'total': updatedTotal,
+      'date': dateController.text,
     };
-
-    creditorController.addCreditor(data);
-
+    controller.updateCreditor(widget.creditor['id'], data);
     Get.back();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        title: const Text('নতুন পাওনাদারের তথ্য'),
+        title: const Text('তথ্য এডিট করুন'),
         titleTextStyle: const TextStyle(color: Colors.black, fontFamily: 'TiroBangla-Regular', fontSize: 18.0, fontWeight: FontWeight.w700),
       ),
       body: Padding(
@@ -87,7 +94,7 @@ class _AddCreditorInfoScreenState extends State<AddCreditorInfoScreen> {
                       title: 'মোট টাকা :',
                       controller: totalController,
                       keyboard: TextInputType.number,
-                    ),
+                    )
                   ),
                   SizedBox(width: MediaQuery.of(context).size.width * .1 -15),
                   Expanded(
@@ -100,11 +107,28 @@ class _AddCreditorInfoScreenState extends State<AddCreditorInfoScreen> {
                   )
                 ],
               ),
+              const SizedBox(height: 24.0),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextFieldWidget(
+                      title: 'জমার পরিমাণ :',
+                      controller: dipositController,
+                      keyboard: TextInputType.number,
+                    )
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox()
+                  )
+                ],
+              ),
               SizedBox(height: MediaQuery.of(context).size.height * 0.2),
               ButtonWidget(
-                title: 'নিশ্চিত',
-                onPressed: saveData
-              )
+                title: 'আপডেট করুন',
+                onPressed: updateData
+              ),
             ],
           ),
         ),

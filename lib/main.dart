@@ -1,12 +1,16 @@
-import 'package:dena_pawna/page/due_page.dart';
-import 'package:dena_pawna/page/loan_page.dart';
+import 'package:dena_pawna/controller/creditor_controller.dart';
+import 'package:dena_pawna/firebase_options.dart';
+import 'package:dena_pawna/page/creditor_page.dart';
+import 'package:dena_pawna/page/debtor_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  Get.put(CreditorController());
 
   runApp(const MyApp());
 }
@@ -36,6 +40,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final PageController pageController = PageController();
   int currentPage = 0;
+
+  final CreditorController controller = Get.put(CreditorController());
 
   @override
   void dispose() {
@@ -68,7 +74,10 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    buildContainer('মোট পাবো :', 17000),
+                    Obx(() {
+                      return buildContainer('মোট পাবো :', controller.totalAmount.value);
+                      // This is for Double Value : return buildContainer('মোট পাবো :', controller.totalAmount.value.toStringAsFixed(2));
+                    }),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.1 -20,),
                     buildContainer('মোট দিবো :', 17000),
                   ],
@@ -97,8 +106,8 @@ class _HomePageState extends State<HomePage> {
                     setState(() => currentPage = index);
                   },
                   children: const [
-                    DuePage(),
-                    LoanPage()
+                    CreditorPage(),
+                    DebtorPage()
                   ],
                 ),
               )
@@ -128,7 +137,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 8.0),
             Text(
               '${total.toString()} ৳',
-              style: TextStyle(fontFamily: 'TiroBangla-Regular', fontSize: 22.0, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w700),
             )
           ],
         ),
@@ -153,10 +162,11 @@ class _HomePageState extends State<HomePage> {
               border: Border.all(color: isSelected ? Color(0xADCD852F) : Color(0xFFEACDA3)),
             ),
           ),
+          SizedBox(height: 8.0),
           Text(
             title,
             style: TextStyle(
-              color: isSelected ? Color(0xADCD852F) : Color(0xFFEACDA3),
+              color: isSelected ? Color(0xE3945526) : Color(0xFFEACDA3),
               fontFamily: 'TiroBangla-Regular',
               fontSize: isSelected ? 18 : 12,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,

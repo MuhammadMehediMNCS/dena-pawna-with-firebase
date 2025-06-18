@@ -46,7 +46,7 @@ class _TextFieldWidgetState extends State<TextFieldWidget> {
         alignment: Alignment.topLeft,
         child: Text(
           widget.title,
-          style: const TextStyle(color: Color(0xADCD852F), fontFamily: 'NotoSansBengali-Regular', fontWeight: FontWeight.bold),
+          style: const TextStyle(fontFamily: 'TiroBangla-Regular', fontWeight: FontWeight.bold),
         ),
       ),
       const SizedBox(height: 6.0),

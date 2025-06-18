@@ -1,16 +1,15 @@
 import 'package:dena_pawna/screen/add_debtor_info_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/utils.dart';
 
-class LoanPage extends StatefulWidget {
-  const LoanPage({super.key});
+class DebtorPage extends StatefulWidget {
+  const DebtorPage({super.key});
 
   @override
-  State<LoanPage> createState() => _LoanPageState();
+  State<DebtorPage> createState() => _DebtorPageState();
 }
 
-class _LoanPageState extends State<LoanPage> {
+class _DebtorPageState extends State<DebtorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
