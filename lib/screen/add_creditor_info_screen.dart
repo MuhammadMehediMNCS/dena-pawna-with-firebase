@@ -3,7 +3,6 @@ import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/state_manager.dart';
 import 'package:intl/intl.dart';
 
 class AddCreditorInfoScreen extends StatefulWidget {
@@ -104,7 +103,8 @@ class _AddCreditorInfoScreenState extends State<AddCreditorInfoScreen> {
               ButtonWidget(
                 title: 'নিশ্চিত',
                 onPressed: saveData
-              )
+              ),
+              const SizedBox(height: 20.0)
             ],
           ),
         ),

@@ -1,6 +1,9 @@
+import 'package:dena_pawna/controller/debtor_controller.dart';
 import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:intl/intl.dart';
 
 class AddDebtorInfoScreen extends StatefulWidget {
@@ -18,11 +21,28 @@ class _AddDebtorInfoScreenState extends State<AddDebtorInfoScreen> {
   TextEditingController totalController = TextEditingController();
   TextEditingController dateController = TextEditingController();
 
+  final debtorController = Get.put(DebtorController());
+
   @override
   void initState() {
     dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
 
     super.initState();
+  }
+
+  void saveData() {
+    Map<String, dynamic> data = {
+      'name': nameController.text,
+      'father': fatherController.text,
+      'address': addressController.text,
+      'mobile': mobileController.text,
+      'total': int.parse(totalController.text),
+      'date': dateController.text
+    };
+
+    debtorController.addDebtor(data);
+
+    Get.back();
   }
   
   @override
@@ -83,8 +103,9 @@ class _AddDebtorInfoScreenState extends State<AddDebtorInfoScreen> {
               SizedBox(height: MediaQuery.of(context).size.height * 0.2),
               ButtonWidget(
                 title: 'নিশ্চিত',
-                onPressed: () {}
-              )
+                onPressed: saveData
+              ),
+              const SizedBox(height: 20.0)
             ],
           ),
         ),

@@ -2,6 +2,7 @@ import 'package:dena_pawna/controller/creditor_controller.dart';
 import 'package:dena_pawna/page/creditor_details_page.dart';
 import 'package:dena_pawna/screen/add_creditor_info_screen.dart';
 import 'package:dena_pawna/screen/edit_creditor_info_screen.dart';
+import 'package:dena_pawna/widget/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -20,7 +21,7 @@ class _CreditorPageState extends State<CreditorPage> {
     return Scaffold(
       body: Obx((){
         if (controller.creditorList.isEmpty) {
-          return const Center(child: Text("কোনো তথ্য পাওয়া যায়নি"));
+          return buildCreditorShimmer();
         }
         return ListView.builder(
           itemCount: controller.creditorList.length,
@@ -81,4 +82,84 @@ class _CreditorPageState extends State<CreditorPage> {
       ),
     );
   }
+
+  Widget buildCreditorShimmer() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    child: Column(
+      children: [
+        Card(
+          shape: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black26, width: 2),
+            borderRadius: BorderRadius.circular(12)
+          ),
+          child: ListTile(
+            title: ShimmerWidget.rectangular(
+              height: 22
+            ),
+            subtitle: ShimmerWidget.rectangular(
+              height: 8
+            ),
+            trailing: ShimmerWidget.circular(
+              width: 24, 
+              height: 24
+            ),
+          ),
+        ),
+        Card(
+          shape: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black26, width: 2),
+            borderRadius: BorderRadius.circular(12)
+          ),
+          child: ListTile(
+            title: ShimmerWidget.rectangular(
+              height: 22
+            ),
+            subtitle: ShimmerWidget.rectangular(
+              height: 8
+            ),
+            trailing: ShimmerWidget.circular(
+              width: 24, 
+              height: 24
+            ),
+          ),
+        ),
+        Card(
+          shape: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black26, width: 2),
+            borderRadius: BorderRadius.circular(12)
+          ),
+          child: ListTile(
+            title: ShimmerWidget.rectangular(
+              height: 22
+            ),
+            subtitle: ShimmerWidget.rectangular(
+              height: 8
+            ),
+            trailing: ShimmerWidget.circular(
+              width: 24, 
+              height: 24
+            ),
+          ),
+        ),
+        Card(
+          shape: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.black26, width: 2),
+            borderRadius: BorderRadius.circular(12)
+          ),
+          child: ListTile(
+            title: ShimmerWidget.rectangular(
+              height: 22
+            ),
+            subtitle: ShimmerWidget.rectangular(
+              height: 8
+            ),
+            trailing: ShimmerWidget.circular(
+              width: 24, 
+              height: 24
+            ),
+          ),
+        )
+      ],
+    ),
+  );
 }

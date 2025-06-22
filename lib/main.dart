@@ -1,7 +1,9 @@
 import 'package:dena_pawna/controller/creditor_controller.dart';
+import 'package:dena_pawna/controller/debtor_controller.dart';
 import 'package:dena_pawna/firebase_options.dart';
 import 'package:dena_pawna/page/creditor_page.dart';
 import 'package:dena_pawna/page/debtor_page.dart';
+import 'package:dena_pawna/widget/shimmer_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,7 +43,8 @@ class _HomePageState extends State<HomePage> {
   final PageController pageController = PageController();
   int currentPage = 0;
 
-  final CreditorController controller = Get.put(CreditorController());
+  final CreditorController creditorController = Get.put(CreditorController());
+  final DebtorController debtorController = Get.put(DebtorController());
 
   @override
   void dispose() {
@@ -54,7 +57,7 @@ class _HomePageState extends State<HomePage> {
     if (index >= 0 && index <= 1) {
       pageController.animateToPage(
         index,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut
       );
 
@@ -74,12 +77,24 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Obx(() {
-                      return buildContainer('মোট পাবো :', controller.totalAmount.value);
+                    Flexible(
+                      child: Obx(() {
+                        if (creditorController.totalAmount.value == 0) {
+                          return buildShimmerContainer();
+                        }
+                        return buildContainer('মোট পাবো :', creditorController.totalAmount.value);
                       // This is for Double Value : return buildContainer('মোট পাবো :', controller.totalAmount.value.toStringAsFixed(2));
-                    }),
+                      }),
+                    ),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.1 -20,),
-                    buildContainer('মোট দিবো :', 17000),
+                    Flexible(
+                      child: Obx(() {
+                        if (debtorController.totalAmount.value == 0) {
+                          return buildShimmerContainer();
+                        }
+                        return buildContainer('মোট দিবো :', debtorController.totalAmount.value);
+                      }),
+                    )
                   ],
                 )
               ),
@@ -155,7 +170,7 @@ class _HomePageState extends State<HomePage> {
           AnimatedContainer(
             height: isSelected ? 24 : 18,
             width: isSelected ? 24 : 18,
-            duration: const Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 300),
             decoration: BoxDecoration(
               color: isSelected ?  Color(0xADCD852F) : Color(0xFFEACDA3),
               shape: BoxShape.circle,
@@ -176,4 +191,9 @@ class _HomePageState extends State<HomePage> {
       )
     );
   }
+
+  Widget buildShimmerContainer() => ShimmerWidget.rectangular(
+    height: MediaQuery.of(context).size.height * 0.1,
+    width: double.infinity,
+  );
 }
