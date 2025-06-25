@@ -1,4 +1,5 @@
 import 'package:dena_pawna/controller/debtor_controller.dart';
+import 'package:dena_pawna/page/debtor_details_page.dart';
 import 'package:dena_pawna/screen/add_debtor_info_screen.dart';
 import 'package:dena_pawna/screen/edit_debtor_info_screen.dart';
 import 'package:dena_pawna/widget/shimmer_widget.dart';
@@ -54,13 +55,18 @@ class _DebtorPageState extends State<DebtorPage> {
                       style: TextStyle(color: Color(0xE3945526), fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        controller.deleteDebtor(debtor['id']);
+                      },
                       icon: const Icon(Icons.delete_rounded),
                       color: Colors.red,
                       highlightColor: Color(0xADCD852F),
                     ),
                   ],
                 ),
+                onTap: () {
+                  Get.to(DebtorDetailsPage(debtor: debtor));
+                },
               ),
             );
           }

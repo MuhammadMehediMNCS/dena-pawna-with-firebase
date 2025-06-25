@@ -1,6 +1,8 @@
+import 'package:dena_pawna/controller/debtor_controller.dart';
 import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class EditDebtorInfoScreen extends StatefulWidget {
@@ -21,6 +23,9 @@ class _EditDebtorInfoScreenState extends State<EditDebtorInfoScreen> {
   late TextEditingController dateController;
   final TextEditingController dipositController = TextEditingController();
   final TextEditingController dipositDateController = TextEditingController();
+
+  final controller = Get.find<DebtorController>();
+
   @override
   void initState() {
     nameController = TextEditingController(text: widget.debtor['name']);
@@ -31,6 +36,26 @@ class _EditDebtorInfoScreenState extends State<EditDebtorInfoScreen> {
     dateController = TextEditingController(text: widget.debtor['date']);
     dipositDateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
     super.initState();
+  }
+
+  void updateData() async {
+    final String id = widget.debtor['id'];
+    final int total = int.tryParse(totalController.text) ?? 0;
+    final int diposit = int.tryParse(dipositController.text) ?? 0;
+    final int updatedTotal = total - diposit;
+
+    Map<String, dynamic> updatedData = {
+      'name': nameController.text,
+      'father': fatherController.text,
+      'address': addressController.text,
+      'mobile': mobileController.text,
+      'total': updatedTotal,
+      'date': dateController.text,
+    };
+
+    controller.updateDebtor(id, updatedData);
+
+    Get.back();
   }
   
   @override
@@ -131,7 +156,7 @@ class _EditDebtorInfoScreenState extends State<EditDebtorInfoScreen> {
               SizedBox(height: MediaQuery.of(context).size.height * 0.2),
               ButtonWidget(
                 title: 'পরিবর্তন',
-                onPressed: () {}
+                onPressed: updateData
               ),
               const SizedBox(height: 20.0)
             ],

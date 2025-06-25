@@ -39,4 +39,27 @@ class DebtorController extends GetxController {
 
     totalAmount.value += sum;
   }
+
+  // Update
+  Future<void> updateDebtor(String id, Map<String, dynamic> data) async {
+    await firestore.collection('debtors').doc(id).update(data);
+
+    fetchDebtors();
+  }
+
+  // Delete
+  Future<void> deleteDebtor(String id) async {
+    final historyCollection = firestore
+      .collection('debtors')
+      .doc(id)
+      .collection('debtors_history');
+
+    final historyDocs = await historyCollection.get();
+    for (var doc in historyDocs.docs) {
+      await doc.reference.delete();
+    }
+
+    await firestore.collection('debtors').doc(id).delete();
+    await fetchDebtors();
+  }
 }

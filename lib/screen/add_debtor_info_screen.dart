@@ -3,7 +3,6 @@ import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:intl/intl.dart';
 
 class AddDebtorInfoScreen extends StatefulWidget {
