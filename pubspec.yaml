@@ -40,6 +40,8 @@ dependencies:
   cloud_firestore: 
   intl: 
   shimmer: 
+  image_picker:
+  firebase_storage:
 
 dev_dependencies:
   flutter_test:

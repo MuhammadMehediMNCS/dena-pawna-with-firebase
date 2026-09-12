@@ -1,87 +1,115 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+
+import 'package:dena_pawna/controller/person_controller.dart';
+import 'package:dena_pawna/data/repositories/person_repository.dart';
+import 'package:dena_pawna/data/repositories/storage_repository.dart';
 import 'package:get/get.dart';
 
-class CreditorController extends GetxController {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+class CreditorController extends PersonController {
+  final PersonRepository _repository = PersonRepository(collectionName: 'creditors');
+  final StorageRepository _storageRepository = StorageRepository();
 
-  RxList<Map<String, dynamic>> creditorList = <Map<String, dynamic>>[].obs;
-  RxList<Map<String, dynamic>> singleDipositList = <Map<String, dynamic>>[].obs;
-  RxInt totalAmount = 0.obs;
+  static const String _imageFolder = 'creditors';
+
+  @override
+  final RxList<Map<String, dynamic>> personList = <Map<String, dynamic>>[].obs;
+
+  @override
+  final RxList<Map<String, dynamic>> historyList = <Map<String, dynamic>>[].obs;
+
+  @override
+  final RxInt totalAmount = 0.obs;
 
   @override
   void onInit() {
-    fetchCreditors();
+    fetchPersons();
     super.onInit();
   }
 
-  // Create
-  Future<void> addCreditor(Map<String, dynamic> data) async {
-  await firestore.collection('creditors').add(data);
-  await fetchCreditors();
-}
+  @override
+  Future<void> fetchPersons() async {
+    final list = await _repository.fetchPersons();
+    personList.value = list;
 
-  // Read (This is a Common Function for CRUD operation)
-  Future<void> fetchCreditors() async {
-    final snapshot = await firestore.collection('creditors').get();
-
-    creditorList.value = snapshot.docs.map((doc) => {...doc.data(), 'id' : doc.id}).toList();
-
-    // Calculate all total
-    int sum = 0; // This is for "Double Value : double sum = 0.0;"
-
-    for (var doc in snapshot.docs) {
-      final total = doc.data()['total'];
-
+    int sum = 0;
+    for (final item in list) {
+      final total = item['total'];
       if (total != null && total is num) {
-        sum += total.toInt(); // This is for "Double Value : sum += total.toDouble();"
+        sum += total.toInt();
       }
     }
-
     totalAmount.value = sum;
   }
 
-  // Update
-  Future<void> updateCreditor(String id, Map<String, dynamic> data) async {
-    await firestore.collection('creditors').doc(id).update(data);
+  @override
+  Future<void> addPerson(Map<String, dynamic> data, {File? imageFile}) async {
+    final String id = await _repository.addPerson(data);
 
-    fetchCreditors();
-  }
-
-  // Delete
-  Future<void> deleteCreditor(String id) async {
-    final historyCollection = firestore
-      .collection('creditors')
-      .doc(id)
-      .collection('creditors_history');
-
-    final historyDocs = await historyCollection.get();
-    for (final doc in historyDocs.docs) {
-      await doc.reference.delete();
+    if (imageFile != null) {
+      final String url = await _storageRepository.uploadImage(
+        file: imageFile,
+        folder: _imageFolder,
+        id: id,
+      );
+      await _repository.updatePerson(id, {'image': url});
     }
 
-    await firestore.collection('creditors').doc(id).delete();
-    await fetchCreditors();
-  }
-  
-  // Create Diposit History a new collection
-  Future<void> saveDipositHistory(String creditorId, Map<String, dynamic> data) async {
-    await firestore.collection('creditors')
-      .doc(creditorId)
-      .collection('creditors_history')
-      .add(data);
+    await fetchPersons();
   }
 
-  // Read Diposit History
-  Future<void> fetchDipositHistoryForCreditor(String creditorId) async {
-    final snapshot = await firestore
-      .collection('creditors')
-      .doc(creditorId)
-      .collection('creditors_history')
-      .get();
+  @override
+  Future<void> updatePerson(
+    String id,
+    Map<String, dynamic> data, {
+    File? imageFile,
+  }) async {
+    if (imageFile != null) {
+      final String url = await _storageRepository.uploadImage(
+        file: imageFile,
+        folder: _imageFolder,
+        id: id,
+      );
+      data['image'] = url;
+    }
 
-    singleDipositList.value = snapshot.docs.map((doc) => {
-      ...doc.data(),
-      'id': doc.id,
-    }).toList();
+    await _repository.updatePerson(id, data);
+    await fetchPersons();
+  }
+
+  @override
+  Future<void> deletePerson(String id) async {
+    await _repository.deletePerson(id);
+    await fetchPersons();
+  }
+
+  @override
+  Future<void> updatePersonImage(String id, File imageFile) async {
+    final String url = await _storageRepository.uploadImage(
+      file: imageFile,
+      folder: _imageFolder,
+      id: id,
+    );
+    await _repository.updatePerson(id, {'image': url});
+    await fetchPersons();
+  }
+
+  @override
+  Future<void> saveReceiveHistory(String personId, Map<String, dynamic> data) async {
+    await _repository.addReceiveHistory(personId, data);
+  }
+
+  @override
+  Future<void> saveDepositHistory(String personId, Map<String, dynamic> data) async {
+    await _repository.addDepositHistory(personId, data);
+  }
+
+  @override
+  Future<void> fetchReceiveHistoryForPerson(String personId) async {
+    historyList.value = await _repository.fetchReceiveHistory(personId);
+  }
+
+  @override
+  Future<void> fetchDepositHistoryForPerson(String personId) async {
+    historyList.value = await _repository.fetchDepositHistory(personId);
   }
 }

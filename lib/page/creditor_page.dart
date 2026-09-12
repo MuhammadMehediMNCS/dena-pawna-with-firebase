@@ -1,13 +1,16 @@
 import 'package:dena_pawna/controller/creditor_controller.dart';
-import 'package:dena_pawna/page/creditor_details_page.dart';
-import 'package:dena_pawna/screen/add_creditor_info_screen.dart';
-import 'package:dena_pawna/screen/edit_creditor_info_screen.dart';
+import 'package:dena_pawna/page/person_details_page.dart';
+import 'package:dena_pawna/page/person_history_page.dart';
+import 'package:dena_pawna/screen/person_form_screen.dart';
+import 'package:dena_pawna/widget/person_list_tile.dart';
 import 'package:dena_pawna/widget/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CreditorPage extends StatefulWidget {
-  const CreditorPage({super.key});
+  final double topPadding;
+
+  const CreditorPage({super.key, this.topPadding =0});
 
   @override
   State<CreditorPage> createState() => _CreditorPageState();
@@ -16,150 +19,78 @@ class CreditorPage extends StatefulWidget {
 class _CreditorPageState extends State<CreditorPage> {
   final controller = Get.find<CreditorController>();
 
+  static const Color primaryColor = Color(0xE3945526);
+  static const Color secondaryColor = Color(0xADCD852F);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx((){
-        if (controller.creditorList.isEmpty) {
-          return buildCreditorShimmer();
+      body: Obx(() {
+        if (controller.personList.isEmpty) {
+          return _buildShimmer();
         }
         return ListView.builder(
-          itemCount: controller.creditorList.length,
+          padding: EdgeInsets.fromLTRB(12, widget.topPadding + 12, 12, 12),
+          itemCount: controller.personList.length,
           itemBuilder: (context, index) {
-            final creditor = controller.creditorList[index];
+            final creditor = controller.personList[index];
+            final String id = creditor['id'];
 
-            return Card(
-              shadowColor: Color(0xADCD852F),
-              shape: OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xE3945526)),
-                borderRadius: BorderRadius.circular(12)
-              ),
-              child: ListTile(
-                leading: IconButton(
-                  onPressed: () {
-                    Get.to(() => EditCreditorInfoScreen(creditor: creditor));
-                  },
-                  icon: Icon(Icons.edit_square),
-                  color: Colors.green,
-                  highlightColor: Color(0xADCD852F),
-                ),
-                title: Text(creditor['name']),
-                titleTextStyle: TextStyle(color: Color(0xE3945526), fontFamily: 'TiroBangla-Regular', fontSize: 18, fontWeight: FontWeight.bold),
-                subtitle: Text(creditor['father']),
-                subtitleTextStyle: TextStyle(color: Color(0xADCD852F), fontFamily: 'TiroBangla-Regular'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${creditor['total']} ৳",
-                      style: TextStyle(color: Color(0xE3945526), fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        controller.deleteCreditor(creditor['id']);
-                      },
-                      icon: const Icon(Icons.delete_rounded),
-                      color: Colors.red,
-                      highlightColor: Color(0xADCD852F),
-                    ),
-                  ],
-                ),
-                onTap: () {
-                  Get.to(CreditorDetailsPage(creditor: creditor));
-                },
-              ),
+            return PersonListTile(
+              person: creditor,
+              primaryColor: primaryColor,
+              secondaryColor: secondaryColor,
+              onTap: () => Get.to(() => PersonDetailsPage(person: creditor)),
+              onEdit: () => Get.to(() => PersonFormScreen(
+                    controller: controller,
+                    appBarTitle: 'তথ্য এডিট করুন',
+                    person: creditor,
+                  )),
+              onDelete: () => controller.deletePerson(id),
+              onReceiveHistory: () => Get.to(() => PersonHistoryPage(
+                    personId: id,
+                    controller: controller,
+                    historyType: HistoryType.receive,
+                  )),
+              onDepositHistory: () => Get.to(() => PersonHistoryPage(
+                    personId: id,
+                    controller: controller,
+                    historyType: HistoryType.deposit,
+                  )),
+              onImagePicked: (file) => controller.updatePersonImage(id, file),
             );
-          }
+          },
         );
       }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(AddCreditorInfoScreen());
-        },
-        shape: CircleBorder(),
-        backgroundColor: Color(0xADCD852F),
-        child: Icon(Icons.add),
+        onPressed: () => Get.to(() => PersonFormScreen(
+              controller: controller,
+              appBarTitle: 'নতুন পাওনাদারের তথ্য',
+            )),
+        shape: const CircleBorder(),
+        backgroundColor: const Color(0xFFB5792B),
+        child: const Icon(Icons.add, color: Color(0xFFDFBF9C)),
       ),
     );
   }
 
-  Widget buildCreditorShimmer() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 12),
-    child: Column(
-      children: [
-        Card(
-          shape: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black26, width: 2),
-            borderRadius: BorderRadius.circular(12)
-          ),
-          child: ListTile(
-            title: ShimmerWidget.rectangular(
-              height: 22
-            ),
-            subtitle: ShimmerWidget.rectangular(
-              height: 8
-            ),
-            trailing: ShimmerWidget.circular(
-              width: 24, 
-              height: 24
+  Widget _buildShimmer() => Padding(
+        padding: EdgeInsets.fromLTRB(12, widget.topPadding + 12, 12, 12),
+        child: Column(
+          children: List.generate(
+            4,
+            (_) => Card(
+              shape: OutlineInputBorder(
+                borderSide: const BorderSide(color: Colors.black26, width: 2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: ShimmerWidget.rectangular(height: 22),
+                subtitle: ShimmerWidget.rectangular(height: 8),
+                trailing: ShimmerWidget.circular(width: 24, height: 24),
+              ),
             ),
           ),
         ),
-        Card(
-          shape: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black26, width: 2),
-            borderRadius: BorderRadius.circular(12)
-          ),
-          child: ListTile(
-            title: ShimmerWidget.rectangular(
-              height: 22
-            ),
-            subtitle: ShimmerWidget.rectangular(
-              height: 8
-            ),
-            trailing: ShimmerWidget.circular(
-              width: 24, 
-              height: 24
-            ),
-          ),
-        ),
-        Card(
-          shape: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black26, width: 2),
-            borderRadius: BorderRadius.circular(12)
-          ),
-          child: ListTile(
-            title: ShimmerWidget.rectangular(
-              height: 22
-            ),
-            subtitle: ShimmerWidget.rectangular(
-              height: 8
-            ),
-            trailing: ShimmerWidget.circular(
-              width: 24, 
-              height: 24
-            ),
-          ),
-        ),
-        Card(
-          shape: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.black26, width: 2),
-            borderRadius: BorderRadius.circular(12)
-          ),
-          child: ListTile(
-            title: ShimmerWidget.rectangular(
-              height: 22
-            ),
-            subtitle: ShimmerWidget.rectangular(
-              height: 8
-            ),
-            trailing: ShimmerWidget.circular(
-              width: 24, 
-              height: 24
-            ),
-          ),
-        )
-      ],
-    ),
-  );
+      );
 }
