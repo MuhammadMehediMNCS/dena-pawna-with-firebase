@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dena_pawna/controller/person_controller.dart';
+import 'package:dena_pawna/controller/theme_controller.dart';
 import 'package:dena_pawna/widget/button_widget.dart';
 import 'package:dena_pawna/widget/circle_image_picker.dart';
 import 'package:dena_pawna/widget/text_field_widget.dart';
@@ -31,6 +32,8 @@ class PersonFormScreen extends StatefulWidget {
 }
 
 class _PersonFormScreenState extends State<PersonFormScreen> {
+  final ThemeController themeController = Get.find<ThemeController>();
+
   late final TextEditingController nameController;
   late final TextEditingController fatherController;
   late final TextEditingController addressController;
@@ -210,129 +213,179 @@ class _PersonFormScreenState extends State<PersonFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: Text(widget.appBarTitle),
-        titleTextStyle: const TextStyle(
-          color: Colors.black,
-          fontFamily: 'TiroBangla-Regular',
-          fontSize: 18.0,
-          fontWeight: FontWeight.w700,
+    return Obx(() {
+      final colors = themeController.colors;
+
+      return Scaffold(
+        backgroundColor: colors.pageBackground,
+        appBar: AppBar(
+          backgroundColor: colors.headerColor,
+          title: Text(widget.appBarTitle),
+          titleTextStyle: TextStyle(
+            color: colors.headerTextColor,
+            fontFamily: 'TiroBangla-Regular',
+            fontSize: 18.0,
+            fontWeight: FontWeight.w700,
+          ),
+          iconTheme: IconThemeData(color: colors.headerTextColor),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // ছবি সেকশন — ফায়ারবেজ স্টোরেজে আপলোড হবে, ফর্মে এটি
-              // সম্পূর্ণ ঐচ্ছিক (optional); না দিলেও তথ্য সেভ হবে এবং
-              // পরে লিস্টভিউ থেকেও ছবি যোগ করা যাবে।
-              Center(
-                child: CircleImagePicker(
-                  radius: 48,
-                  imageUrl: widget.person?['image'],
-                  placeholderText: 'ছবি যোগ করুন\n(ঐচ্ছিক)',
-                  onImagePicked: (file) => setState(() => _pickedImageFile = file),
+        body: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // ছবি সেকশন — ফায়ারবেজ স্টোরেজে আপলোড হবে, ফর্মে এটি
+                // সম্পূর্ণ ঐচ্ছিক (optional); না দিলেও তথ্য সেভ হবে এবং
+                // পরে লিস্টভিউ থেকেও ছবি যোগ করা যাবে।
+                Center(
+                  child: CircleImagePicker(
+                    radius: 48,
+                    imageUrl: widget.person?['image'],
+                    placeholderText: 'ছবি যোগ করুন\n(ঐচ্ছিক)',
+                    borderColor: colors.accent,
+                    onImagePicked: (file) => setState(() => _pickedImageFile = file),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24.0),
-              TextFieldWidget(title: 'নাম/প্রতিষ্ঠানের নাম :', controller: nameController),
-              const SizedBox(height: 24.0),
-              TextFieldWidget(title: 'পিতার/কেন্দ্রের নাম :', controller: fatherController),
-              const SizedBox(height: 24.0),
-              TextFieldWidget(title: 'ঠিকানা :', controller: addressController),
-              const SizedBox(height: 24.0),
-              TextFieldWidget(
-                title: 'মোবাইল নাম্বার :',
-                controller: mobileController,
-                keyboard: TextInputType.phone,
-              ),
-              const SizedBox(height: 24.0),
-              if (!_isEdit)
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'মোট টাকা :',
-                        controller: totalController,
-                        keyboard: TextInputType.number,
-                      ),
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'তারিখ :',
-                        controller: dateController,
-                        keyboard: TextInputType.datetime,
-                      ),
-                    ),
-                  ],
-                )
-              else ...[
+                const SizedBox(height: 24.0),
                 TextFieldWidget(
-                  title: 'মোট টাকা :',
-                  controller: totalController,
+                  title: 'নাম/প্রতিষ্ঠানের নাম :',
+                  controller: nameController,
+                  labelColor: colors.textPrimary,
+                  textColor: colors.textPrimary,
+                  accentColor: colors.accent,
+                ),
+                const SizedBox(height: 24.0),
+                TextFieldWidget(
+                  title: 'পিতার/কেন্দ্রের নাম :',
+                  controller: fatherController,
+                  labelColor: colors.textPrimary,
+                  textColor: colors.textPrimary,
+                  accentColor: colors.accent,
+                ),
+                const SizedBox(height: 24.0),
+                TextFieldWidget(
+                  title: 'ঠিকানা :',
+                  controller: addressController,
+                  labelColor: colors.textPrimary,
+                  textColor: colors.textPrimary,
+                  accentColor: colors.accent,
+                ),
+                const SizedBox(height: 24.0),
+                TextFieldWidget(
+                  title: 'মোবাইল নাম্বার :',
+                  controller: mobileController,
                   keyboard: TextInputType.phone,
+                  labelColor: colors.textPrimary,
+                  textColor: colors.textPrimary,
+                  accentColor: colors.accent,
                 ),
                 const SizedBox(height: 24.0),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'গ্রহণের পরিমাণ :',
-                        controller: receiveController,
-                        keyboard: TextInputType.number,
+                if (!_isEdit)
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'মোট টাকা :',
+                          controller: totalController,
+                          keyboard: TextInputType.number,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'গ্রহণের তারিখ :',
-                        controller: dateController,
-                        keyboard: TextInputType.datetime,
+                      SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'তারিখ :',
+                          controller: dateController,
+                          keyboard: TextInputType.datetime,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  )
+                else ...[
+                  TextFieldWidget(
+                    title: 'মোট টাকা :',
+                    controller: totalController,
+                    keyboard: TextInputType.phone,
+                    labelColor: colors.textPrimary,
+                    textColor: colors.textPrimary,
+                    accentColor: colors.accent,
+                  ),
+                  const SizedBox(height: 24.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'গ্রহণের পরিমাণ :',
+                          controller: receiveController,
+                          keyboard: TextInputType.number,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'গ্রহণের তারিখ :',
+                          controller: dateController,
+                          keyboard: TextInputType.datetime,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'জমার পরিমাণ :',
+                          controller: depositController,
+                          keyboard: TextInputType.number,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
+                      Expanded(
+                        flex: 2,
+                        child: TextFieldWidget(
+                          title: 'জমার তারিখ :',
+                          controller: depositDateController,
+                          keyboard: TextInputType.datetime,
+                          labelColor: colors.textPrimary,
+                          textColor: colors.textPrimary,
+                          accentColor: colors.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                SizedBox(height: MediaQuery.of(context).size.height * 0.12),
+                ButtonWidget(
+                  title: _isEdit ? 'পরিবর্তন' : 'নিশ্চিত',
+                  onPressed: _save,
+                  backgroundColor: colors.accent,
                 ),
-                const SizedBox(height: 24.0),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'জমার পরিমাণ :',
-                        controller: depositController,
-                        keyboard: TextInputType.number,
-                      ),
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * .1 - 15),
-                    Expanded(
-                      flex: 2,
-                      child: TextFieldWidget(
-                        title: 'জমার তারিখ :',
-                        controller: depositDateController,
-                        keyboard: TextInputType.datetime,
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 20.0),
               ],
-              SizedBox(height: MediaQuery.of(context).size.height * 0.12),
-              ButtonWidget(
-                title: _isEdit ? 'পরিবর্তন' : 'নিশ্চিত',
-                onPressed: _save,
-              ),
-              const SizedBox(height: 20.0),
-            ],
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

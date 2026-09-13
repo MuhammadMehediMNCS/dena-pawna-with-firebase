@@ -1,24 +1,27 @@
 import 'package:dena_pawna/controller/creditor_controller.dart';
 import 'package:dena_pawna/controller/debtor_controller.dart';
+import 'package:dena_pawna/controller/theme_controller.dart';
 import 'package:dena_pawna/firebase_options.dart';
 import 'package:dena_pawna/page/creditor_page.dart';
 import 'package:dena_pawna/page/debtor_page.dart';
+import 'package:dena_pawna/page/settings_page.dart';
 import 'package:dena_pawna/widget/shimmer_widget.dart';
 import 'package:dena_pawna/widget/tab_selector_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // নোট: আগে এখানে এবং HomePage-এ, দুই জায়গাতেই CreditorController
-  // Get.put করা হতো — যা কন্ট্রোলারকে অপ্রয়োজনে দুইবার তৈরি করত। এখন
-  // দুটো কন্ট্রোলারই এখানে একবারই put করা হচ্ছে, বাকি সব জায়গায়
-  // Get.find() দিয়ে একই ইনস্ট্যান্স ব্যবহার হবে।
+  // থিম বাছাই (ডার্ক/লাইট/কালার) ডিভাইসে সংরক্ষণ করার জন্য GetStorage।
+  await GetStorage.init();
+
   Get.put(CreditorController());
   Get.put(DebtorController());
+  Get.put(ThemeController());
 
   runApp(const MyApp());
 }
@@ -51,15 +54,12 @@ class _HomePageState extends State<HomePage> {
 
   final CreditorController creditorController = Get.find<CreditorController>();
   final DebtorController debtorController = Get.find<DebtorController>();
-
-  static const Color appBarColor = Color(0xFFB5792B);
-  static const Color pageBackgroundColor = Colors.white;
+  final ThemeController themeController = Get.find<ThemeController>();
 
   /// হেডার (দুটো টোটাল-বক্স + ট্যাব) এর প্রকৃত রেন্ডার হওয়া উচ্চতা।
   /// স্ক্রল না করা অবস্থায় লিস্টের প্রথম আইটেম যেন ঠিক হেডারের নিচেই
   /// শুরু হয়, তার জন্য এই মানটি প্রথম ফ্রেমের পরে মেপে নেওয়া হয় এবং
-  /// লিস্টের top padding হিসেবে পাস করা হয়। মাপার আগে একটি আনুমানিক
-  /// মান দেওয়া আছে, যাতে প্রথম ফ্রেমে হঠাৎ লাফ (jump) চোখে না পড়ে।
+  /// লিস্টের top padding হিসেবে পাস করা হয়।
   final GlobalKey _headerKey = GlobalKey();
   double _headerHeight = 195.0;
 
@@ -94,166 +94,178 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // প্রতিটি ফ্রেমের পরে হেডারের উচ্চতা যাচাই করা হয় (কনটেন্ট বদলালে,
-    // যেমন শিমার থেকে আসল ডাটায় পরিবর্তনের সময়, উচ্চতা পাল্টাতে পারে)।
-    // মান আসলেই বদলালে তবেই setState হয়, তাই এটি লুপে পড়ে না।
     WidgetsBinding.instance.addPostFrameCallback((_) => _measureHeader());
 
-    return Scaffold(
-      backgroundColor: pageBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: appBarColor,
-        elevation: 12,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+    // পুরো HomePage একটি Obx-এ মোড়ানো, যাতে সেটিংস থেকে থিম বদলালে
+    // হেডার/ড্রয়ার/ট্যাব/ব্যাকগ্রাউন্ড — সবকিছু সাথে সাথে রিবিল্ড হয়।
+    return Obx(() {
+      final colors = themeController.colors;
+
+      return Scaffold(
+        backgroundColor: colors.pageBackground,
+        appBar: AppBar(
+          backgroundColor: colors.headerColor,
+          elevation: 12,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.menu_rounded, color: colors.headerTextColor, size: 26),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+          title: Text(
+            'আমার লেনদেনের হিসাব',
+            style: TextStyle(
+              fontFamily: 'TiroBangla-Regular',
+              fontSize: 18.0,
+              fontWeight: FontWeight.w700,
+              color: colors.headerTextColor,
+            ),
           ),
         ),
-        title: const Text(
-          'আমার লেনদেনের হিসাব',
-          style: TextStyle(
-            fontFamily: 'TiroBangla-Regular',
-            fontSize: 18.0,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      drawer: Drawer(
-        backgroundColor: appBarColor,
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20.0),
-                child: const Text(
-                  'দেনা-পাওনা',
-                  style: TextStyle(
-                    fontFamily: 'TiroBangla-Regular',
-                    fontSize: 22.0,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+        drawer: Drawer(
+          backgroundColor: colors.drawerBackground,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text(
+                    'দেনা-পাওনা',
+                    style: TextStyle(
+                      fontFamily: 'TiroBangla-Regular',
+                      fontSize: 22.0,
+                      fontWeight: FontWeight.w700,
+                      color: colors.drawerTextColor,
+                    ),
                   ),
                 ),
+                Divider(color: colors.drawerTextColor.withOpacity(0.4)),
+                ListTile(
+                  leading: Icon(Icons.home_rounded, color: colors.drawerTextColor),
+                  title: Text('হোমপেজ', style: TextStyle(color: colors.drawerTextColor)),
+                  onTap: () => Navigator.pop(context),
+                ),
+                ListTile(
+                  leading: Icon(Icons.settings_outlined, color: colors.drawerTextColor),
+                  title: Text('সেটিংস', style: TextStyle(color: colors.drawerTextColor)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.to(() => const SettingsPage());
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.info_outline, color: colors.drawerTextColor),
+                  title: Text('সম্পর্কে', style: TextStyle(color: colors.drawerTextColor)),
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Stack ব্যবহার করে লিস্টকে হেডারের 'পিছনে' রাখা হয়েছে, যাতে
+        // স্ক্রল করার সময় আইটেম বক্ররেখা বরাবর মিলিয়ে যায়।
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: PageView(
+                  controller: pageController,
+                  onPageChanged: (index) {
+                    setState(() => currentPage = index);
+                  },
+                  children: [
+                    CreditorPage(topPadding: _headerHeight),
+                    DebtorPage(topPadding: _headerHeight),
+                  ],
+                ),
               ),
-              const Divider(color: Colors.white54),
-              ListTile(
-                leading: const Icon(Icons.person_outline, color: Colors.white),
-                title: const Text('প্রোফাইল', style: TextStyle(color: Colors.white)),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined, color: Colors.white),
-                title: const Text('সেটিংস', style: TextStyle(color: Colors.white)),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.info_outline, color: Colors.white),
-                title: const Text('সম্পর্কে', style: TextStyle(color: Colors.white)),
-                onTap: () => Navigator.pop(context),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ClipPath(
+                  key: _headerKey,
+                  clipper: _ArcBottomClipper(archHeight: 48.0),
+                  child: Container(
+                    width: double.infinity,
+                    color: colors.headerColor,
+                    padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0 + 28.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Obx(() {
+                                if (creditorController.personList.isEmpty) {
+                                  return buildShimmerContainer();
+                                }
+                                return buildContainer(
+                                  'মোট পাবো :',
+                                  creditorController.totalAmount.value,
+                                  Colors.green,
+                                  colors.totalBoxBackground,
+                                );
+                              }),
+                            ),
+                            const SizedBox(width: 12.0),
+                            Expanded(
+                              child: Obx(() {
+                                if (debtorController.personList.isEmpty) {
+                                  return buildShimmerContainer();
+                                }
+                                return buildContainer(
+                                  'মোট দিবো :',
+                                  debtorController.totalAmount.value,
+                                  Colors.red,
+                                  colors.totalBoxBackground,
+                                );
+                              }),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Obx(() => TabSelectorWidget(
+                                  title: 'পাবো',
+                                  count: creditorController.personList.length,
+                                  isSelected: currentPage == 0,
+                                  onTap: () => changePage(0),
+                                  selectedBackground: colors.tabSelectedBackground,
+                                  selectedText: colors.tabSelectedText,
+                                  unselectedText: colors.tabUnselectedText,
+                                )),
+                            Obx(() => TabSelectorWidget(
+                                  title: 'দিবো',
+                                  count: debtorController.personList.length,
+                                  isSelected: currentPage == 1,
+                                  onTap: () => changePage(1),
+                                  selectedBackground: colors.tabSelectedBackground,
+                                  selectedText: colors.tabSelectedText,
+                                  unselectedText: colors.tabUnselectedText,
+                                )),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
-      ),
-      // আগে এখানে Column ছিল: হেডার তারপর Expanded(লিস্ট) — দুটো সম্পূর্ণ
-      // আলাদা, ওভারল্যাপবিহীন সিবলিং, তাই লিস্টের viewport সবসময় হেডারের
-      // বাউন্ডিং বক্সের একদম সমান-উচ্চতার (সোজা রেখা বরাবর) নিচে কাটা
-      // পড়ত — বক্ররেখার (arc) আকৃতি অনুযায়ী নয়। ফলে স্ক্রল করলে আইটেম
-      // বক্ররেখার রঙের সাথে না মিলিয়ে খানিকটা নিচে গিয়ে হঠাৎ কাটা পড়ত।
-      //
-      // এখন Stack ব্যবহার করে লিস্টকে হেডারের 'পিছনে' রাখা হয়েছে —
-      // লিস্ট (PageView) সম্পূর্ণ স্ক্রিন জুড়ে থাকে (Positioned.fill),
-      // আর বক্র-আকৃতির হেডারটি তার উপরে (Positioned, top: 0) বসানো।
-      // ClipPath যেহেতু আর্চের বাইরের কোণাগুলো স্বচ্ছ রাখে, তাই স্ক্রল
-      // করার সময় লিস্টের আইটেম ঠিক ঐ বক্ররেখা বরাবরই আড়াল হয়ে যায় —
-      // 0xFFB5792B রঙের সাথে নিখুঁতভাবে মিলে যায়।
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: PageView(
-                controller: pageController,
-                onPageChanged: (index) {
-                  setState(() => currentPage = index);
-                },
-                children: [
-                  CreditorPage(topPadding: _headerHeight),
-                  DebtorPage(topPadding: _headerHeight),
-                ],
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: ClipPath(
-                key: _headerKey,
-                clipper: _ArcBottomClipper(archHeight: 48.0),
-                child: Container(
-                  width: double.infinity,
-                  color: appBarColor,
-                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0 + 28.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Obx(() {
-                              if (creditorController.personList.isEmpty) {
-                                return buildShimmerContainer();
-                              }
-                              return buildContainer('মোট পাবো :', creditorController.totalAmount.value, Colors.green);
-                            }),
-                          ),
-                          const SizedBox(width: 12.0),
-                          Expanded(
-                            child: Obx(() {
-                              if (debtorController.personList.isEmpty) {
-                                return buildShimmerContainer();
-                              }
-                              return buildContainer('মোট দিবো :', debtorController.totalAmount.value, Colors.red);
-                            }),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Obx(() => TabSelectorWidget(
-                                title: 'পাবো',
-                                count: creditorController.personList.length,
-                                isSelected: currentPage == 0,
-                                onTap: () => changePage(0),
-                              )),
-                          Obx(() => TabSelectorWidget(
-                                title: 'দিবো',
-                                count: debtorController.personList.length,
-                                isSelected: currentPage == 1,
-                                onTap: () => changePage(1),
-                              )),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+      );
+    });
   }
 
-  Widget buildContainer(String title, int total, Color valueColor) {
+  Widget buildContainer(String title, int total, Color valueColor, Color boxColor) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14.0, horizontal: 8.0),
       decoration: BoxDecoration(
-        color: const Color(0xFFDFBF9C),
+        color: boxColor,
         borderRadius: BorderRadius.circular(14.0),
       ),
       child: Center(

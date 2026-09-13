@@ -1,4 +1,5 @@
 import 'package:dena_pawna/controller/creditor_controller.dart';
+import 'package:dena_pawna/controller/theme_controller.dart';
 import 'package:dena_pawna/page/person_details_page.dart';
 import 'package:dena_pawna/page/person_history_page.dart';
 import 'package:dena_pawna/screen/person_form_screen.dart';
@@ -10,7 +11,7 @@ import 'package:get/get.dart';
 class CreditorPage extends StatefulWidget {
   final double topPadding;
 
-  const CreditorPage({super.key, this.topPadding =0});
+  const CreditorPage({super.key, this.topPadding = 0});
 
   @override
   State<CreditorPage> createState() => _CreditorPageState();
@@ -18,60 +19,66 @@ class CreditorPage extends StatefulWidget {
 
 class _CreditorPageState extends State<CreditorPage> {
   final controller = Get.find<CreditorController>();
+  final themeController = Get.find<ThemeController>();
 
-  static const Color primaryColor = Color(0xE3945526);
-  static const Color secondaryColor = Color(0xADCD852F);
+  // 'পাবো' ট্যাবে টাকার অংক সবসময় সবুজ — এটি থিম-নিরপেক্ষ অর্থবহ রঙ।
+  static const Color amountColor = Colors.green;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Obx(() {
-        if (controller.personList.isEmpty) {
-          return _buildShimmer();
-        }
-        return ListView.builder(
-          padding: EdgeInsets.fromLTRB(12, widget.topPadding + 12, 12, 12),
-          itemCount: controller.personList.length,
-          itemBuilder: (context, index) {
-            final creditor = controller.personList[index];
-            final String id = creditor['id'];
+    return Obx(() {
+      final colors = themeController.colors;
 
-            return PersonListTile(
-              person: creditor,
-              primaryColor: primaryColor,
-              secondaryColor: secondaryColor,
-              onTap: () => Get.to(() => PersonDetailsPage(person: creditor)),
-              onEdit: () => Get.to(() => PersonFormScreen(
-                    controller: controller,
-                    appBarTitle: 'তথ্য এডিট করুন',
-                    person: creditor,
-                  )),
-              onDelete: () => controller.deletePerson(id),
-              onReceiveHistory: () => Get.to(() => PersonHistoryPage(
-                    personId: id,
-                    controller: controller,
-                    historyType: HistoryType.receive,
-                  )),
-              onDepositHistory: () => Get.to(() => PersonHistoryPage(
-                    personId: id,
-                    controller: controller,
-                    historyType: HistoryType.deposit,
-                  )),
-              onImagePicked: (file) => controller.updatePersonImage(id, file),
-            );
-          },
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.to(() => PersonFormScreen(
-              controller: controller,
-              appBarTitle: 'নতুন পাওনাদারের তথ্য',
-            )),
-        shape: const CircleBorder(),
-        backgroundColor: const Color(0xFFB5792B),
-        child: const Icon(Icons.add, color: Color(0xFFDFBF9C)),
-      ),
-    );
+      return Scaffold(
+        backgroundColor: colors.pageBackground,
+        body: Obx(() {
+          if (controller.personList.isEmpty) {
+            return _buildShimmer();
+          }
+          return ListView.builder(
+            padding: EdgeInsets.fromLTRB(12, widget.topPadding + 12, 12, 12),
+            itemCount: controller.personList.length,
+            itemBuilder: (context, index) {
+              final creditor = controller.personList[index];
+              final String id = creditor['id'];
+
+              return PersonListTile(
+                person: creditor,
+                colors: colors,
+                amountColor: amountColor,
+                onTap: () => Get.to(() => PersonDetailsPage(person: creditor)),
+                onEdit: () => Get.to(() => PersonFormScreen(
+                      controller: controller,
+                      appBarTitle: 'তথ্য এডিট করুন',
+                      person: creditor,
+                    )),
+                onDelete: () => controller.deletePerson(id),
+                onReceiveHistory: () => Get.to(() => PersonHistoryPage(
+                      personId: id,
+                      controller: controller,
+                      historyType: HistoryType.receive,
+                    )),
+                onDepositHistory: () => Get.to(() => PersonHistoryPage(
+                      personId: id,
+                      controller: controller,
+                      historyType: HistoryType.deposit,
+                    )),
+                onImagePicked: (file) => controller.updatePersonImage(id, file),
+              );
+            },
+          );
+        }),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => Get.to(() => PersonFormScreen(
+                controller: controller,
+                appBarTitle: 'নতুন পাওনাদারের তথ্য',
+              )),
+          shape: const CircleBorder(),
+          backgroundColor: colors.fabBackground,
+          child: Icon(Icons.add, color: colors.fabIcon),
+        ),
+      );
+    });
   }
 
   Widget _buildShimmer() => Padding(
