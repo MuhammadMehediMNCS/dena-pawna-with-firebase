@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// ড্রয়ারের 'সেটিংস' থেকে এখানে আসা হয়। এই পেজে একটি 'থিম' সেকশন আছে,
-/// যেখানে ডার্ক/লাইট/কালার — তিনটি অপশনের একটি বেছে নিলে সাথে সাথেই পুরো
-/// অ্যাপের রঙ বদলে যায় ([ThemeController] রিঅ্যাক্টিভ, তাই এই পেজ থেকে
-/// বের হওয়ারও দরকার নেই — পরিবর্তন তাৎক্ষণিক প্রয়োগ হয়)।
+/// যেখানে ডার্ক/লাইট/কালার — প্রতিটি অপশনের পাশে একটি সুইচ বাটন আছে।
+/// যেই থিম বর্তমানে চালু আছে তার সুইচটি অন থাকে; অন্য কোনো সুইচে ট্যাপ
+/// করলে সেই থিম চালু হয়ে যায় ও বাকি সুইচগুলো স্বয়ংক্রিয়ভাবে অফ হয়ে যায়
+/// (যেহেতু একসাথে একটিমাত্র থিমই চালু থাকতে পারে)।
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -104,13 +105,19 @@ class _ThemeOptionTile extends StatelessWidget {
 
   bool get _isSelected => mode == currentMode;
 
+  void _handleToggle(bool value) {
+    // সুইচ অফ করার চেষ্টা করলেও কিছু হবে না — একটিমাত্র থিম সবসময় চালু
+    // থাকতেই হবে, তাই শুধু 'অন করার' ট্যাপেই থিম বদলানো হয়।
+    if (value) onSelected();
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onSelected,
       borderRadius: BorderRadius.circular(14.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
         decoration: BoxDecoration(
           color: colors.cardBackground,
           borderRadius: BorderRadius.circular(14.0),
@@ -152,9 +159,10 @@ class _ThemeOptionTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              _isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
-              color: _isSelected ? colors.accent : colors.cardBorder,
+            Switch(
+              value: _isSelected,
+              onChanged: _handleToggle,
+              activeColor: colors.accent,
             ),
           ],
         ),
