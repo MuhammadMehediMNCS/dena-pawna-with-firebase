@@ -1,9 +1,11 @@
 import 'package:dena_pawna/controller/creditor_controller.dart';
 import 'package:dena_pawna/controller/debtor_controller.dart';
 import 'package:dena_pawna/controller/theme_controller.dart';
+import 'package:dena_pawna/core/utils/bengali_digits.dart';
 import 'package:dena_pawna/firebase_options.dart';
 import 'package:dena_pawna/page/creditor_page.dart';
 import 'package:dena_pawna/page/debtor_page.dart';
+import 'package:dena_pawna/page/search_page.dart';
 import 'package:dena_pawna/page/settings_page.dart';
 import 'package:dena_pawna/widget/shimmer_widget.dart';
 import 'package:dena_pawna/widget/tab_selector_widget.dart';
@@ -121,6 +123,14 @@ class _HomePageState extends State<HomePage> {
               color: colors.headerTextColor,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.search_rounded, color: colors.headerTextColor, size: 26),
+              tooltip: 'খুঁজুন',
+              onPressed: () => Get.to(() => const SearchPage()),
+            ),
+            const SizedBox(width: 6),
+          ],
         ),
         drawer: Drawer(
           backgroundColor: colors.drawerBackground,
@@ -198,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Expanded(
                               child: Obx(() {
-                                if (creditorController.personList.isEmpty) {
+                                if (creditorController.isLoading.value) {
                                   return buildShimmerContainer();
                                 }
                                 return buildContainer(
@@ -212,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(width: 12.0),
                             Expanded(
                               child: Obx(() {
-                                if (debtorController.personList.isEmpty) {
+                                if (debtorController.isLoading.value) {
                                   return buildShimmerContainer();
                                 }
                                 return buildContainer(
@@ -283,8 +293,11 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 6.0),
             Text(
-              '${total.toString()} ৳',
+              // কোনো লেনদেন না থাকলে (total == 0) '০০' দেখানো হয়,
+              // নাহলে প্রকৃত অংক — দুই ক্ষেত্রেই বাংলা সংখ্যায়।
+              '${total == 0 ? '০০' : toBengaliDigits(total)} ৳',
               style: TextStyle(
+                fontFamily: 'TiroBangla-Regular',
                 fontSize: 18.0,
                 fontWeight: FontWeight.w700,
                 color: valueColor,

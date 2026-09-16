@@ -20,6 +20,11 @@ class CreditorController extends PersonController {
   @override
   final RxInt totalAmount = 0.obs;
 
+  /// শুরুতে true — কারণ onInit()-এ সাথে সাথেই fetch শুরু হয়, তাই প্রথম
+  /// ফ্রেমেই যেন শিমার দেখা যায়।
+  @override
+  final RxBool isLoading = true.obs;
+
   @override
   void onInit() {
     fetchPersons();
@@ -28,17 +33,25 @@ class CreditorController extends PersonController {
 
   @override
   Future<void> fetchPersons() async {
-    final list = await _repository.fetchPersons();
-    personList.value = list;
+    isLoading.value = true;
 
-    int sum = 0;
-    for (final item in list) {
-      final total = item['total'];
-      if (total != null && total is num) {
-        sum += total.toInt();
+    try {
+      final list = await _repository.fetchPersons();
+      personList.value = list;
+
+      int sum = 0;
+      for (final item in list) {
+        final total = item['total'];
+        if (total != null && total is num) {
+          sum += total.toInt();
+        }
       }
+      totalAmount.value = sum;
+    } finally {
+      // ফেচ সফল হোক বা এরর হোক — লোডিং অবস্থা অবশ্যই শেষ হবে, নাহলে
+      // শিমার চিরকাল ঘুরতেই থাকবে।
+      isLoading.value = false;
     }
-    totalAmount.value = sum;
   }
 
   @override

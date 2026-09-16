@@ -1,17 +1,26 @@
+import 'package:dena_pawna/controller/person_controller.dart';
 import 'package:dena_pawna/controller/theme_controller.dart';
 import 'package:dena_pawna/core/theme/app_colors.dart';
+import 'package:dena_pawna/main.dart';
+import 'package:dena_pawna/widget/person_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class PersonDetailsPage extends StatelessWidget {
   final Map<String, dynamic> person;
+  final PersonController controller;
 
-  const PersonDetailsPage({super.key, required this.person});
+  const PersonDetailsPage({
+    super.key,
+    required this.person,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
     final String? imageUrl = person['image'];
     final themeController = Get.find<ThemeController>();
+    final actions = PersonActions(person: person, controller: controller);
 
     return Obx(() {
       final colors = themeController.colors;
@@ -32,7 +41,7 @@ class PersonDetailsPage extends StatelessWidget {
           ),
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: colors.headerTextColor),
-            onPressed: () => Get.back(),
+            onPressed: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => HomePage()), (route) => false),
           ),
         ),
         body: SingleChildScrollView(
@@ -51,41 +60,36 @@ class PersonDetailsPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              )
-                            ],
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 3),
-                            ),
-                            child: CircleAvatar(
-                              radius: 48,
-                              backgroundColor: colors.cardBackground,
-                              backgroundImage:
-                                  (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
-                              child: (imageUrl == null || imageUrl.isEmpty)
-                                  ? Icon(Icons.person, color: colors.accent, size: 40)
-                                  : null,
-                            ),
-                          ),
+                    Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          )
+                        ],
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
                         ),
-                      ],
+                        child: CircleAvatar(
+                          radius: 48,
+                          backgroundColor: colors.cardBackground,
+                          backgroundImage:
+                              (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
+                          child: (imageUrl == null || imageUrl.isEmpty)
+                              ? Icon(Icons.person, color: colors.accent, size: 40)
+                              : null,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -110,8 +114,8 @@ class PersonDetailsPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
-
+              const SizedBox(height: 16),
+              
               // গ্রিড ইনফরমেশন কার্ডস
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -191,7 +195,29 @@ class PersonDetailsPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+
+              SizedBox(height: MediaQuery.sizeOf(context).height *.12),
+              // লিস্টভিউয়ের মতোই গ্রহণ/জমা/এডিট/ডিলিট বাটনগুলো — এখান
+              // থেকেও হুবহু একই কাজ করা যায়। ডিলিট করলে এই পেজটি বন্ধ
+              // হয়ে যাবে, কারণ ব্যক্তিটি আর নেই।
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: colors.cardBackground,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: colors.cardBorder),
+                  ),
+                  child: PersonActionBar(
+                    actions: actions,
+                    colors: colors,
+                    onDeleted: () => Get.back(),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -201,8 +227,8 @@ class PersonDetailsPage extends StatelessWidget {
 }
 
 /// প্রতিটি তথ্যের কার্ড — আইকনের নিজস্ব রঙ (iconBgColor) তিনটি থিমেই
-/// অপরিবর্তিত থাকে (রেফারেন্স ডিজাইন অনুযায়ী), শুধু কার্ডের ব্যাকগ্রাউন্ড
-/// ও টেক্সট রঙ বর্তমান থিম ([colors]) অনুযায়ী বদলায়।
+/// অপরিবর্তিত থাকে, শুধু কার্ডের ব্যাকগ্রাউন্ড ও টেক্সট রঙ বর্তমান থিম
+/// ([colors]) অনুযায়ী বদলায়।
 class InfoCard extends StatelessWidget {
   final IconData icon;
   final Color iconBgColor;

@@ -11,6 +11,14 @@ abstract class PersonController extends GetxController {
   /// পাওনাদার/দেনাদারের সম্পূর্ণ তালিকা
   RxList<Map<String, dynamic>> get personList;
 
+  /// ডাটা এখনো ফায়ারবেজ থেকে আসছে কিনা।
+  ///
+  /// আগে শুধু `personList.isEmpty` দেখে শিমার দেখানো হতো — কিন্তু তালিকা
+  /// সত্যিকারেই ফাঁকা হলে (ডাটাবেজে কিছু না থাকলে) সেটিও 'isEmpty' হয়,
+  /// ফলে শিমার আর কখনো থামত না। এই ফ্ল্যাগটি দিয়ে 'লোড হচ্ছে' আর
+  /// 'লোড শেষ, কিন্তু কিছুই নেই' — এই দুই অবস্থা আলাদা করা যায়।
+  RxBool get isLoading;
+
   /// সর্বশেষ যা fetch করা হয়েছে (গ্রহণের ইতিহাস অথবা জমার ইতিহাস) তা এখানে
   /// থাকে — [fetchReceiveHistoryForPerson] অথবা [fetchDepositHistoryForPerson]
   /// যেটি কল করা হবে তার ফলাফল এখানে বসবে।
