@@ -3,19 +3,22 @@ import 'package:flutter/material.dart';
 /// "Liquid Swipe" রেফারেন্স GIF-এর আদলে একটি হাতে-তৈরি পেজ ট্রানজিশন।
 ///
 /// নতুন পেজটি একটি ঢেউ-আকৃতির (wavy) সীমানা দিয়ে পুরনো পেজের উপর
-/// বাম থেকে ডানে ছড়িয়ে পড়ে ঢুকে আসে। `pop()` করলে Navigator স্বয়ংক্রিয়ভাবে
-/// এই একই অ্যানিমেশনটি উল্টো দিকে চালায় (reverse animation), তাই আলাদা
-/// করে "ফিরে যাওয়ার" অ্যানিমেশন লেখার দরকার হয় না — এটি "ফ্রি"-তেই আসে।
+/// বাম থেকে ডানে ছড়িয়ে পড়ে ঢুকে আসে। পেজের ক্লিপের ঠিক আগে আগে একটি
+/// রঙিন (গ্রেডিয়েন্ট) "তরল" ঢেউ চলে — এটিই লিকুইড-সুইপের বর্ণিল
+/// অনুভূতিটা দেয় (আগে এখানে পেজের নিজের সাদা ব্যাকগ্রাউন্ডই দেখা যেত,
+/// তাই সুইপটা সাদা মনে হতো)। `pop()` করলে Navigator স্বয়ংক্রিয়ভাবে
+/// এই একই অ্যানিমেশনটি উল্টো দিকে চালায়, তাই আলাদা করে "ফিরে যাওয়ার"
+/// অ্যানিমেশন লেখার দরকার হয় না।
 ///
 /// pub.dev-এর `liquid_swipe` প্যাকেজটি মূলত অনবোর্ডিং কারুসেলের জন্য
 /// বানানো (পাতার মধ্যে swipe gesture-ভিত্তিক), স্বাভাবিক Navigator পুশের
 /// জন্য উপযুক্ত নয় — তাই এখানে CustomClipper দিয়ে কাছাকাছি একটি ভিজুয়াল
 /// এফেক্ট হাতে বানানো হয়েছে।
 class LiquidPageRoute<T> extends PageRouteBuilder<T> {
-  LiquidPageRoute({required this.page})
+  LiquidPageRoute({required this.page, required this.waveColors})
       : super(
-          transitionDuration: const Duration(milliseconds: 520),
-          reverseTransitionDuration: const Duration(milliseconds: 420),
+          transitionDuration: const Duration(milliseconds: 560),
+          reverseTransitionDuration: const Duration(milliseconds: 440),
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             final curved = CurvedAnimation(
@@ -27,9 +30,35 @@ class LiquidPageRoute<T> extends PageRouteBuilder<T> {
               animation: curved,
               child: child,
               builder: (context, child) {
-                return ClipPath(
-                  clipper: _LiquidWaveClipper(progress: curved.value),
-                  child: child,
+                final double pageProgress = curved.value;
+                // রঙিন ঢেউটা পেজের ক্লিপের চেয়ে একটু এগিয়ে থাকে, ফলে
+                // পেজ আর তার ঠিক আগের মাঝে একটা সরু রঙিন "লিকুইড" ফালি
+                // সবসময় দৃশ্যমান থাকে — এটাই বর্ণিল সুইপ-লাইনের অনুভূতি দেয়।
+                final double waveProgress = (pageProgress + 0.07).clamp(0.0, 1.0);
+
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ClipPath(
+                        clipper: _LiquidWaveClipper(progress: waveProgress),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: waveColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: ClipPath(
+                        clipper: _LiquidWaveClipper(progress: pageProgress),
+                        child: child,
+                      ),
+                    ),
+                  ],
                 );
               },
             );
@@ -37,6 +66,11 @@ class LiquidPageRoute<T> extends PageRouteBuilder<T> {
         );
 
   final Widget page;
+
+  /// লিকুইড ঢেউয়ের গ্রেডিয়েন্ট রং — সাধারণত সক্রিয় থিমের
+  /// `headerGradient` পাস করা হয়, যাতে সুইপের রংটা অ্যাপের বাকি রঙের
+  /// সাথে মানানসই থাকে।
+  final List<Color> waveColors;
 }
 
 class _LiquidWaveClipper extends CustomClipper<Path> {

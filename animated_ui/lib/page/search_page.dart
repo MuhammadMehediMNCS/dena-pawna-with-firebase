@@ -1,4 +1,5 @@
 import 'package:animated_ui/core/transitions/card_expand_route.dart';
+import 'package:animated_ui/core/utils/hero_tags.dart';
 import 'package:animated_ui/page/person_details_page.dart';
 import 'package:animated_ui/providers/person_providers.dart';
 import 'package:animated_ui/providers/theme_provider.dart';
@@ -116,13 +117,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: colors.accentColor.withOpacity(0.15),
-                                backgroundImage:
-                                    (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
-                                child: (imageUrl == null || imageUrl.isEmpty)
-                                    ? Icon(Icons.person, color: colors.accentColor)
-                                    : null,
+                              leading: Hero(
+                                tag: personAvatarHeroTag(person['id'] as String? ?? ''),
+                                child: CircleAvatar(
+                                  backgroundColor: colors.accentColor.withOpacity(0.15),
+                                  backgroundImage:
+                                      (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
+                                  child: (imageUrl == null || imageUrl.isEmpty)
+                                      ? Icon(Icons.person, color: colors.accentColor)
+                                      : null,
+                                ),
                               ),
                               title: Text(
                                 person['name'] ?? '',

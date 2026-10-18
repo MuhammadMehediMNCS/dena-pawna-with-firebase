@@ -2,6 +2,7 @@ import 'package:animated_ui/core/theme/app_colors.dart';
 import 'package:animated_ui/core/transitions/liquid_page_route.dart';
 import 'package:animated_ui/page/person_history_page.dart';
 import 'package:animated_ui/providers/person_providers.dart';
+import 'package:animated_ui/providers/theme_provider.dart';
 import 'package:animated_ui/screen/person_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,9 +27,15 @@ class PersonActions {
 
   String get _id => person['id'] as String;
 
+  /// লিকুইড সুইপের রঙিন ঢেউ — সক্রিয় থিমের হেডার-গ্রেডিয়েন্ট থেকে নেওয়া,
+  /// যাতে সুইপের রংটা সাদা না হয়ে বরং অ্যাপের বাকি রঙের সাথে মানানসই
+  /// একটি সুন্দর গ্রেডিয়েন্ট হয়।
+  List<Color> get _liquidColors => ref.read(appColorsProvider).headerGradient;
+
   void openReceiveHistory() {
     Navigator.of(context).push(
       LiquidPageRoute(
+        waveColors: _liquidColors,
         page: PersonHistoryPage(
           personId: _id,
           provider: provider,
@@ -41,6 +48,7 @@ class PersonActions {
   void openDepositHistory() {
     Navigator.of(context).push(
       LiquidPageRoute(
+        waveColors: _liquidColors,
         page: PersonHistoryPage(
           personId: _id,
           provider: provider,
@@ -53,6 +61,7 @@ class PersonActions {
   void openEdit() {
     Navigator.of(context).push(
       LiquidPageRoute(
+        waveColors: _liquidColors,
         page: PersonFormScreen(
           provider: provider,
           appBarTitle: 'তথ্য এডিট করুন',

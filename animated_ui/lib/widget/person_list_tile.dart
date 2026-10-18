@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:animated_ui/core/theme/app_colors.dart';
+import 'package:animated_ui/core/utils/hero_tags.dart';
 import 'package:animated_ui/widget/circle_image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -35,6 +36,66 @@ class PersonListTile extends StatelessWidget {
   final VoidCallback onDepositHistory;
   final ValueChanged<File> onImagePicked;
   final AppColors colors;
+
+  /// পূর্ণাঙ্গ তথ্য পেজে যাওয়ার সময় (পুশ) এই তালিকার উপর নতুন পেজ চাপা
+  /// পড়ে, আর ফিরে আসার সময় (পপ) সেটি সরে যায় — ModalRoute-এর
+  /// secondaryAnimation ঠিক এই "চাপা পড়া/সরে যাওয়া" প্রক্রিয়াটাই
+  /// ০→১→০ আকারে বহন করে। তাই নাম/ঠিকানা/মোট টাকার লেখাগুলোর অপাসিটি
+  /// এই অ্যানিমেশনের বিপরীতে (1 - value) বাঁধা হয়েছে: পপ করে ফেরার সময়
+  /// লেখাগুলো অদৃশ্য থেকে ধীরে ধীরে দৃশ্যমান হয়ে ওঠে — ঠিক যেমনটা
+  /// চাওয়া হয়েছিল।
+  Widget _buildFadingDetails(BuildContext context) {
+    final Animation<double>? secondaryAnimation = ModalRoute.of(context)?.secondaryAnimation;
+
+    final Widget content = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                person['name'] ?? '',
+                style: TextStyle(
+                  color: colors.primaryText,
+                  fontFamily: 'TiroBangla-Regular',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${person['father'] ?? ''}, ${person['address'] ?? ''}',
+                style: TextStyle(
+                  color: colors.secondaryText,
+                  fontFamily: 'TiroBangla-Regular',
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          '${person['total']} ৳',
+          style: TextStyle(
+            color: colors.primaryText,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Icon(Icons.swipe_left_alt_rounded, size: 18, color: colors.secondaryText),
+        const SizedBox(width: 10),
+      ],
+    );
+
+    if (secondaryAnimation == null) return content;
+
+    return AnimatedBuilder(
+      animation: secondaryAnimation,
+      builder: (context, child) => Opacity(opacity: 1 - secondaryAnimation.value, child: child),
+      child: content,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,49 +154,22 @@ class PersonListTile extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleImagePicker(
-                    radius: 28,
-                    imageUrl: person['image'],
-                    placeholderText: 'ছবি',
-                    borderColor: colors.primaryText,
-                    onImagePicked: onImagePicked,
+                  // এই Hero-র ট্যাগ পূর্ণাঙ্গ তথ্য পেজের অ্যাভাটারের
+                  // ট্যাগের সাথে হুবহু মিলে — তাই ট্যাপ করলে ছবিটি বড়
+                  // হয়ে পেজের উপরের মাঝখানে উড়ে যায়, আর ব্যাক করলে
+                  // ঠিক এই জায়গাতেই ছোট হয়ে ফিরে আসে।
+                  Hero(
+                    tag: personAvatarHeroTag(id),
+                    child: CircleImagePicker(
+                      radius: 28,
+                      imageUrl: person['image'],
+                      placeholderText: 'ছবি',
+                      borderColor: colors.primaryText,
+                      onImagePicked: onImagePicked,
+                    ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          person['name'] ?? '',
-                          style: TextStyle(
-                            color: colors.primaryText,
-                            fontFamily: 'TiroBangla-Regular',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${person['father'] ?? ''}, ${person['address'] ?? ''}',
-                          style: TextStyle(
-                            color: colors.secondaryText,
-                            fontFamily: 'TiroBangla-Regular',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    '${person['total']} ৳',
-                    style: TextStyle(
-                      color: colors.primaryText,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Icon(Icons.swipe_left_alt_rounded, size: 18, color: colors.secondaryText),
-                  const SizedBox(width: 10),
+                  Expanded(child: _buildFadingDetails(context)),
                 ],
               ),
             ),

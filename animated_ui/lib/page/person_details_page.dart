@@ -1,4 +1,5 @@
 import 'package:animated_ui/core/theme/app_colors.dart';
+import 'package:animated_ui/core/utils/hero_tags.dart';
 import 'package:animated_ui/providers/person_providers.dart';
 import 'package:animated_ui/providers/theme_provider.dart';
 import 'package:animated_ui/widget/person_actions.dart';
@@ -67,28 +68,35 @@ class PersonDetailsPage extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 56,
-                        backgroundColor: Colors.white,
-                        backgroundImage:
-                            (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
-                        child: (imageUrl == null || imageUrl.isEmpty)
-                            ? Icon(Icons.person, color: colors.accentColor, size: 40)
-                            : null,
+                    // লিস্টভিউয়ের অ্যাভাটারের সাথে ঠিক একই Hero ট্যাগ —
+                    // তাই তালিকা থেকে ট্যাপ করলে ছবিটি (বা সার্চ-ফলাফল
+                    // থেকেও) বড় হয়ে এখানে উড়ে আসে, এখান থেকে ব্যাক
+                    // করলে আবার ছোট হয়ে নিজের জায়গায় ফিরে যায়।
+                    Hero(
+                      tag: personAvatarHeroTag(person['id'] as String? ?? ''),
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 56,
+                          backgroundColor: Colors.white,
+                          backgroundImage:
+                              (imageUrl != null && imageUrl.isNotEmpty) ? NetworkImage(imageUrl) : null,
+                          child: (imageUrl == null || imageUrl.isEmpty)
+                              ? Icon(Icons.person, color: colors.accentColor, size: 40)
+                              : null,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

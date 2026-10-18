@@ -80,6 +80,7 @@ class PersonListPageBody extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
           LiquidPageRoute(
+            waveColors: colors.headerGradient,
             page: PersonFormScreen(provider: provider, appBarTitle: addTitle),
           ),
         ),
